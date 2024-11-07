@@ -4,8 +4,9 @@ on:
   push:
     paths:
       - "**/*.rs" # Any Rust source code files
-      - Cargo.toml # Cargo.toml file
-      - Cargo.lock # Cargo.lock file
+      - Cargo.toml
+      - Cargo.lock
+      - .github/workflows/docs.yml
   workflow_dispatch:
 
 concurrency:
@@ -30,7 +31,7 @@ jobs:
       - name: Build Rust Documentation
         run: |
           cargo doc --no-deps --document-private-items
-          echo "<meta http-equiv=\"refresh\" content=\"0; url=plonky2-verifier\">" > target/doc/index.html
+          echo "<meta http-equiv=\"refresh\" content=\"0; url=plonky2_verifier\">" > target/doc/index.html
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
