@@ -1,0 +1,55 @@
+name: Deploy Dev Rust Docs to GitHub Pages
+
+on:
+  push:
+    paths:
+      - "**/*.rs" # Any Rust source code files
+      - Cargo.toml # Cargo.toml file
+      - Cargo.lock # Cargo.lock file
+  workflow_dispatch:
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - name: Build Rust Documentation
+        run: |
+          cargo doc --no-deps --document-private-items
+          echo "<meta http-equiv=\"refresh\" content=\"0; url=plonky2-verifier\">" > target/doc/index.html
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./target/doc
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+
+    permissions:
+      pages: write
+      id-token: write
+
+    environment:
+      name: dev-docs
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -39,11 +39,6 @@ impl From<DeserializeError> for VerifyError {
 
 /// Verify the given proof `proof` and public inputs `pubs` using verification key `vk`.
 /// Use the given verification key `vk` to verify the proof `proof` against the public inputs `pubs`.
-/// Can fail if:
-/// - the proof, the pubs or the vk are not deserializable respectively as a `plonky2::plonk::proof::Proof`, 
-///   a `plonky2::hash::hash_types::RichField + plonky2_field::extension::Extendable` 
-///   and `plonky2::plonk::circuit_data::VerifierCircuitData`.
-/// - the proof is not valid.
 pub fn verify<F, C, const D: usize>(
     vk: &[u8],
     proof: &[u8],
