@@ -1,0 +1,19 @@
+[package]
+name = "plonky2-verifier"
+version = "0.1.0"
+edition = "2021"
+license = "GPL-3.0"
+description = "A pure Rust library to verify plonky2 proof."
+repository = "https://github.com/distributed-lab/plonky2-verifier"
+homepage = "https://github.com/distributed-lab/plonky2-verifier#readme"
+documentation = "https://distributed-lab.github.io/plonky2-verifier/"
+authors = ["Distributed Lab"]
+keywords = ["crypto", "no-std", "blockchain", "cryptography"]
+
+[dependencies]
+plonky2 = "0.2.2"
+snafu = "0.8.5"
+
+[dev-dependencies]
+ctor = "0.2.8"
+once_cell = "1.20.2"
