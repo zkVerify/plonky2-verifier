@@ -1,43 +1,49 @@
+#![cfg(test)]
 #[path = "artifacts_generator.rs"]
 mod artifacts_generator;
 
 use plonky2_verifier::{verify_default_poseidon, DeserializeError, VerifyError};
+use rstest::*;
 use std::path::Path;
 
-const PROOF_PATH: &str = "tests/artifacts/proof.bin";
-const PUBS_PATH: &str = "tests/artifacts/pubs.bin";
-const VK_PATH: &str = "tests/artifacts/vk.bin";
+/// `TestData` for verification in serialized format.
+struct TestData {
+    vk: Vec<u8>,
+    proof: Vec<u8>,
+    pubs: Vec<u8>,
+}
 
-/// Proof, public inputs and verification key in serialized format.
-type TestData = (Vec<u8>, Vec<u8>, Vec<u8>);
-
+#[fixture]
 /// Ensures artifacts are generated and loads them.
-/// Returns Result to handle potential loading errors.
-fn load_data() -> Result<TestData, String> {
-    if !Path::new(PROOF_PATH).exists()
-        || !Path::new(PUBS_PATH).exists()
-        || !Path::new(VK_PATH).exists()
+fn valid_test_data() -> TestData {
+    if !Path::new("tests/artifacts/vk.bin").exists()
+        || !Path::new("tests/artifacts/proof.bin").exists()
+        || !Path::new("tests/artifacts/pubs.bin").exists()
     {
         println!("Generating artifacts...");
         artifacts_generator::gen_factorial();
     }
 
-    let proof = std::fs::read(PROOF_PATH).map_err(|e| format!("Failed to load proof: {}", e))?;
-    let pubs = std::fs::read(PUBS_PATH).map_err(|e| format!("Failed to load pubs: {}", e))?;
-    let vk = std::fs::read(VK_PATH).map_err(|e| format!("Failed to load vk: {}", e))?;
-
-    Ok((vk, proof, pubs))
+    TestData {
+        vk: include_bytes!("artifacts/vk.bin").to_vec(),
+        proof: include_bytes!("artifacts/proof.bin").to_vec(),
+        pubs: include_bytes!("artifacts/pubs.bin").to_vec(),
+    }
 }
 
-#[test]
-fn should_verify_valid_proof() {
-    let (vk, proof, pubs) = load_data().expect("Failed to load data");
+#[rstest]
+fn should_verify_valid_proof(valid_test_data: TestData) {
+    let TestData { vk, proof, pubs } = valid_test_data;
     assert!(verify_default_poseidon(&vk, &proof, &pubs).is_ok());
 }
 
-#[test]
-fn should_not_deserialize_invalid_pubs() {
-    let (vk, proof, mut pubs) = load_data().expect("Failed to load data");
+#[rstest]
+fn should_not_deserialize_invalid_pubs(valid_test_data: TestData) {
+    let TestData {
+        vk,
+        proof,
+        mut pubs,
+    } = valid_test_data;
 
     pubs[0] = pubs.first().unwrap().wrapping_add(1);
 
@@ -52,9 +58,13 @@ fn should_not_deserialize_invalid_pubs() {
     );
 }
 
-#[test]
-fn should_not_verify_false_proof() {
-    let (vk, mut proof, pubs) = load_data().expect("Failed to load data");
+#[rstest]
+fn should_not_verify_false_proof(valid_test_data: TestData) {
+    let TestData {
+        vk,
+        mut proof,
+        pubs,
+    } = valid_test_data;
 
     let len = proof.len();
     proof[len - 1] = pubs.last().unwrap().wrapping_add(1);
