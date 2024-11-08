@@ -5,6 +5,7 @@
 extern crate alloc;
 
 mod deserializer;
+pub mod validate;
 
 use deserializer::{deserialize_proof_with_pubs, deserialize_vk};
 
