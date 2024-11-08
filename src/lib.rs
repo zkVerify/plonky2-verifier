@@ -10,8 +10,8 @@ use deserializer::{deserialize_proof_with_pubs, deserialize_vk};
 
 use plonky2::field::extension::Extendable;
 use plonky2::hash::hash_types::RichField;
-use plonky2::plonk::config::GenericConfig;
-use plonky2::util::serialization::GateSerializer;
+use plonky2::plonk::config::{GenericConfig, KeccakGoldilocksConfig, PoseidonGoldilocksConfig};
+use plonky2::util::serialization::{DefaultGateSerializer, GateSerializer};
 use snafu::Snafu;
 
 pub use deserializer::DeserializeError;
@@ -53,4 +53,24 @@ where
     let proof = deserialize_proof_with_pubs::<F, C, D>(proof, pubs, &vk.common)?;
 
     vk.verify(proof).map_err(|_| VerifyError::Failure)
+}
+
+/// Verification with preset Poseidon over Goldilocks config available in `plonky2`.
+/// Uses `DefaultGateSerializer`.
+pub fn verify_default_poseidon(vk: &[u8], proof: &[u8], pubs: &[u8]) -> Result<(), VerifyError> {
+    const D: usize = 2;
+    type C = PoseidonGoldilocksConfig;
+    type F = <C as GenericConfig<D>>::F;
+
+    verify::<F, C, D>(vk, proof, pubs, &DefaultGateSerializer)
+}
+
+/// Verification with preset Keccak over Goldilocks config available in `plonky2`.
+/// Uses `DefaultGateSerializer`.
+pub fn verify_default_keccak(vk: &[u8], proof: &[u8], pubs: &[u8]) -> Result<(), VerifyError> {
+    const D: usize = 2;
+    type C = KeccakGoldilocksConfig;
+    type F = <C as GenericConfig<D>>::F;
+
+    verify::<F, C, D>(vk, proof, pubs, &DefaultGateSerializer)
 }
