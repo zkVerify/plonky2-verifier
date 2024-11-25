@@ -24,11 +24,11 @@ fn valid_test_data() -> TestData {
         artifacts_generator::gen_factorial();
     }
 
-    TestData {
-        vk: include_bytes!("artifacts/vk.bin").to_vec(),
-        proof: include_bytes!("artifacts/proof.bin").to_vec(),
-        pubs: include_bytes!("artifacts/pubs.bin").to_vec(),
-    }
+    let vk = std::fs::read("tests/artifacts/vk.bin").expect("Failed to read vk.bin");
+    let proof = std::fs::read("tests/artifacts/proof.bin").expect("Failed to read proof.bin");
+    let pubs = std::fs::read("tests/artifacts/pubs.bin").expect("Failed to read pubs.bin");
+
+    TestData { vk, proof, pubs }
 }
 
 #[rstest]
