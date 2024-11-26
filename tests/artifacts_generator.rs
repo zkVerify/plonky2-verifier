@@ -36,8 +36,8 @@ pub fn gen_factorial() {
 
     // Provide initial values.
     let mut pw = PartialWitness::new();
-    pw.set_target(initial_a, F::ZERO);
-    pw.set_target(initial_b, F::ONE);
+    pw.set_target(initial_a, F::ZERO).unwrap();
+    pw.set_target(initial_b, F::ONE).unwrap();
 
     let data = builder.build::<C>();
 
