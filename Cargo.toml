@@ -10,9 +10,19 @@ documentation = "https://distributed-lab.github.io/plonky2-verifier/"
 authors = ["Distributed Lab"]
 keywords = ["crypto", "no-std", "blockchain", "cryptography"]
 
+resolver = "2"
+
 [dependencies]
-plonky2 = { git = "https://github.com/distributed-lab/plonky2", branch = "stable"}
-snafu = "0.8.5"
+plonky2 = { git = "https://github.com/distributed-lab/plonky2", branch = "stable", default-features = false}
+
+snafu = { version = "0.8.5", default-features = false }
 
 [dev-dependencies]
 rstest = "0.23.0"
+
+[features]
+default = ["std"]
+std = [
+    "plonky2/std",
+    "snafu/std",
+]
