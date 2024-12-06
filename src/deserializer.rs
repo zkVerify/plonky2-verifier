@@ -5,6 +5,7 @@ use plonky2::plonk::config::GenericConfig;
 use plonky2::plonk::proof::ProofWithPublicInputs;
 use plonky2::util::serialization::GateSerializer;
 
+#[cfg(not(feature = "std"))]
 use alloc::vec::Vec;
 use snafu::Snafu;
 

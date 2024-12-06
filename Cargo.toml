@@ -14,7 +14,6 @@ resolver = "2"
 
 [dependencies]
 plonky2 = { git = "https://github.com/distributed-lab/plonky2", branch = "stable", default-features = false}
-
 snafu = { version = "0.8.5", default-features = false }
 
 [dev-dependencies]

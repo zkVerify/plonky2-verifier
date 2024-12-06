@@ -2,6 +2,7 @@
 #![doc = include_str!("../README.md")]
 #![deny(missing_docs)]
 
+#[cfg(not(feature = "std"))]
 extern crate alloc;
 
 mod deserializer;
