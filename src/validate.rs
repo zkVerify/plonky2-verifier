@@ -3,7 +3,6 @@
 use crate::deserializer::deserialize_vk;
 use crate::DeserializeError;
 use plonky2::plonk::config::{GenericConfig, KeccakGoldilocksConfig, PoseidonGoldilocksConfig};
-use plonky2::util::serialization::DefaultGateSerializer;
 use snafu::Snafu;
 
 /// Validation error.
@@ -25,25 +24,23 @@ impl From<DeserializeError> for ValidateError {
 }
 
 /// Validate vk with preset Poseidon over Goldilocks config available in `plonky2`.
-/// Uses `DefaultGateSerializer`.
 pub fn validate_vk_default_poseidon(vk: &[u8]) -> Result<(), ValidateError> {
     const D: usize = 2;
     type C = PoseidonGoldilocksConfig;
     type F = <C as GenericConfig<D>>::F;
 
-    deserialize_vk::<F, C, D>(vk, &DefaultGateSerializer)
+    deserialize_vk::<F, C, D>(vk)
         .map(|_| ()) // Discard `Ok` value, map it to `()`
         .map_err(ValidateError::from) // Convert `DeserializeError` to `ValidateError`
 }
 
 /// Validate vk with preset Keccak over Goldilocks config available in `plonky2`.
-/// Uses `DefaultGateSerializer`.
 pub fn validate_vk_default_keccak(vk: &[u8]) -> Result<(), ValidateError> {
     const D: usize = 2;
     type C = KeccakGoldilocksConfig;
     type F = <C as GenericConfig<D>>::F;
 
-    deserialize_vk::<F, C, D>(vk, &DefaultGateSerializer)
+    deserialize_vk::<F, C, D>(vk)
         .map(|_| ()) // Discard `Ok` value, map it to `()`
         .map_err(ValidateError::from) // Convert `DeserializeError` to `ValidateError`
 }

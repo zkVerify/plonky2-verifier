@@ -1,9 +1,12 @@
+pub mod custom;
+
+use custom::ZKVerifyGateSerializer;
+
 use plonky2::field::extension::Extendable;
 use plonky2::hash::hash_types::RichField;
 use plonky2::plonk::circuit_data::{CommonCircuitData, VerifierCircuitData};
 use plonky2::plonk::config::GenericConfig;
 use plonky2::plonk::proof::ProofWithPublicInputs;
-use plonky2::util::serialization::GateSerializer;
 
 #[cfg(not(feature = "std"))]
 use alloc::vec::Vec;
@@ -22,13 +25,12 @@ pub enum DeserializeError {
 
 pub(crate) fn deserialize_vk<F, C, const D: usize>(
     vk: &[u8],
-    gs: &dyn GateSerializer<F, D>,
 ) -> Result<VerifierCircuitData<F, C, D>, DeserializeError>
 where
     F: RichField + Extendable<D>,
     C: GenericConfig<D, F = F>,
 {
-    VerifierCircuitData::<F, C, D>::from_bytes(Vec::from(vk), gs)
+    VerifierCircuitData::<F, C, D>::from_bytes(Vec::from(vk), &ZKVerifyGateSerializer)
         .map_err(|_| DeserializeError::InvalidVerificationKey)
 }
 
