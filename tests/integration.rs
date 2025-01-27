@@ -2,7 +2,7 @@
 #[path = "artifacts_generator.rs"]
 mod artifacts_generator;
 
-use plonky2_verifier::{verify_default_poseidon, DeserializeError, VerifyError};
+use plonky2_verifier::{verify, verify_default_poseidon, DeserializeError, VerifyError, Vk};
 use rstest::*;
 use std::path::Path;
 
@@ -29,6 +29,19 @@ fn valid_test_data() -> TestData {
     let pubs = std::fs::read("tests/artifacts/pubs.bin").expect("Failed to read pubs.bin");
 
     TestData { vk, proof, pubs }
+}
+
+#[rstest]
+fn should_verify_valid_proof_vk_json(valid_test_data: TestData) {
+    let json_data =
+        std::fs::read_to_string("tests/artifacts/vk.json").expect("Failed to read the vk.json");
+
+    let vk: Vk =
+        serde_json::from_str(&json_data).expect("Failed to deserialize JSON into Vk struct");
+
+    let TestData { proof, pubs, .. } = valid_test_data;
+
+    assert!(verify(&vk, &proof, &pubs).is_ok());
 }
 
 #[rstest]

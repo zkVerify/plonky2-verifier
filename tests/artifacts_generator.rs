@@ -5,7 +5,8 @@ use plonky2::iop::witness::{PartialWitness, WitnessWrite};
 use plonky2::plonk::circuit_builder::CircuitBuilder;
 use plonky2::plonk::circuit_data::CircuitConfig;
 use plonky2::plonk::config::{GenericConfig, PoseidonGoldilocksConfig};
-use plonky2::util::serialization::{DefaultGateSerializer, Write};
+use plonky2::util::serialization::Write;
+use plonky2_verifier::ZKVerifyGateSerializer;
 
 /// Fibonacci circuit, taken from plonky2 examples:
 /// https://github.com/0xPolygonZero/plonky2/blob/v0.2.3/plonky2/examples/fibonacci.rs
@@ -54,7 +55,7 @@ pub fn gen_factorial() {
 
     let vk_bytes = data
         .verifier_data()
-        .to_bytes(&DefaultGateSerializer)
+        .to_bytes(&ZKVerifyGateSerializer)
         .unwrap();
 
     fs::write("tests/artifacts/vk.bin", vk_bytes).unwrap();

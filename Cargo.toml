@@ -14,11 +14,26 @@ resolver = "2"
 
 [dependencies]
 plonky2 = { git = "https://github.com/distributed-lab/plonky2", branch = "stable", default-features = false}
-
 snafu = { version = "0.8.5", default-features = false }
+serde = { version = "1.0.217", default-features = false, features = ["derive"] }
+serde_with = { version = "3.12.0", default-features = false, features = ["macros", "hex"] }
+
+anyhow = { version = "1.0.95", default-features = false, optional = true }
+serde_json = { version = "1.0.137", default-features = false, optional = true, features = ["std"] }
+bincode = { version = "1.3.3", default-features = false, optional = true}
+clap = { version = "4.5.27", default-features = false, optional = true, features = ["std", "derive", "help"] }
+log = { version = "0.4.25", default-features = false, optional = true}
+env_logger = { version = "0.11.6", default-features = false, optional = true }
+hex = { version = "0.4.3", default-features = false, optional = true, features = ["std"] }
 
 [dev-dependencies]
-rstest = "0.23.0"
+rstest = "0.24.0"
+serde_json = "1.0.137"
+
+[[bin]]
+name = "plonky2-converter"
+path = "src/bin/converter.rs"
+required-features = ["converter"]
 
 [features]
 default = ["std"]
@@ -26,3 +41,4 @@ std = [
     "plonky2/std",
     "snafu/std",
 ]
+converter = ["anyhow", "serde_json", "bincode", "clap", "log", "env_logger", "hex"]
