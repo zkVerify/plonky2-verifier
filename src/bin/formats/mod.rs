@@ -17,7 +17,7 @@ pub enum VerifierCircuitDataFormat {
 impl VerifierCircuitDataFormat {
     /// Decodes the verifier circuit data from the specified format.
     pub fn decode(&self, vk_bytes: Vec<u8>, config: Plonky2Config) -> Result<Vk> {
-        let vk_bytes = match self {
+        let bytes = match self {
             VerifierCircuitDataFormat::Bytes => vk_bytes,
             VerifierCircuitDataFormat::Hex => {
                 let hex_str = vk_bytes.strip_prefix(b"0x").unwrap_or(&vk_bytes);
@@ -30,10 +30,7 @@ impl VerifierCircuitDataFormat {
             }
         };
 
-        Ok(Vk {
-            vk_bytes: bytes,
-            config,
-        })
+        Ok(Vk { bytes, config })
     }
 }
 

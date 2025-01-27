@@ -4,9 +4,6 @@ use crate::config::Plonky2Config;
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 
-#[cfg(feature = "converter")]
-use bincode;
-
 #[cfg(feature = "std")]
 extern crate std;
 #[cfg(not(feature = "std"))]
