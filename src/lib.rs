@@ -7,10 +7,13 @@ extern crate alloc;
 
 mod config;
 mod deserializer;
+mod proof;
 pub mod validate;
 mod vk;
 
-use deserializer::{deserialize_proof_with_pubs, deserialize_vk};
+use deserializer::{
+    deserialize_compressed_proof_with_pubs, deserialize_proof_with_pubs, deserialize_vk,
+};
 
 use plonky2::field::extension::Extendable;
 use plonky2::hash::hash_types::RichField;
@@ -20,6 +23,7 @@ use snafu::Snafu;
 
 pub use config::Plonky2Config;
 pub use deserializer::{custom::ZKVerifyGateSerializer, DeserializeError};
+pub use proof::Proof;
 pub use vk::Vk;
 
 /// Verification error.
@@ -47,7 +51,7 @@ impl From<DeserializeError> for VerifyError {
 }
 
 /// Verify `proof` with `pubs` depending on `vk` plonky2 configuration.
-pub fn verify(vk: &Vk, proof: &[u8], pubs: &[u8]) -> Result<(), VerifyError> {
+pub fn verify(vk: &Vk, proof: &Proof, pubs: &[u8]) -> Result<(), VerifyError> {
     match vk.config {
         Plonky2Config::Keccak => {
             const D: usize = 2;
@@ -69,7 +73,7 @@ pub fn verify(vk: &Vk, proof: &[u8], pubs: &[u8]) -> Result<(), VerifyError> {
 /// Verify the given `proof` and public inputs `pubs` using verification key `vk`.
 pub fn verify_inner<F, C, const D: usize>(
     vk: &[u8],
-    proof: &[u8],
+    proof: &Proof,
     pubs: &[u8],
 ) -> Result<(), VerifyError>
 where
@@ -80,7 +84,19 @@ where
     if vk.common.config != CircuitConfig::standard_recursion_config() {
         return Err(VerifyError::UnsupportedCircuitConfig);
     }
-    let proof = deserialize_proof_with_pubs::<F, C, D>(proof, pubs, &vk.common)?;
 
-    vk.verify(proof).map_err(|_| VerifyError::Failure)
+    if proof.compressed {
+        let proof =
+            deserialize_compressed_proof_with_pubs::<F, C, D>(&proof.bytes, pubs, &vk.common)?;
+        let proof = proof
+            .decompress(&vk.verifier_only.circuit_digest, &vk.common)
+            .unwrap();
+        // vk.verify_compressed(proof)
+        //     .map_err(|_| VerifyError::Failure)
+
+        vk.verify(proof).map_err(|_| VerifyError::Failure)
+    } else {
+        let proof = deserialize_proof_with_pubs::<F, C, D>(&proof.bytes, pubs, &vk.common)?;
+        vk.verify(proof).map_err(|_| VerifyError::Failure)
+    }
 }

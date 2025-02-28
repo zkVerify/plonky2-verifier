@@ -14,6 +14,8 @@ Since we are limited by the nature of passing them in `zkVerify`, we use a custo
 
 For that reason, this crate also provides a binary to convert verification keys into acceptable by `zkVerify` format.
 
+Furthermore, to bring support for compressed proofs from `plonky2`, we use a custom format of [Proof](./src/proof.rs).
+
 ### Install:
 
 ```bash
@@ -21,42 +23,24 @@ cargo install --features converter --path .
 ```
 
 ### Usage:
+
 ```bash
-plonky2-converter vk --help
-Serialize VerifierCircuitData into zkVerify format
+plonky2-converter --help
+```
+
+```
+Converts plonky2 formats
 
 Usage: 
 
-Arguments:
-  <INPUT>
+Commands:
+  vk     Serialize VerifierCircuitData into zkVerify format
+  proof  Serialize Proof or CompressedProof into zkVerify format
+  help   Print this message or the help of the given subcommand(s)
 
-  [OUTPUT]
-          
 Options:
-  -i, --in-fmt <IN_FMT>
-          [default: bytes]
-
-          Possible values:
-          - bytes: Raw binary bytes
-          - hex:   Hex-encoded string (with optional "0x" prefix)
-
-  -o, --out-fmt <OUT_FMT>
-          [default: json]
-
-          Possible values:
-          - json:  JSON format (pretty-printed)
-          - bytes: Raw binary bytes
-          - hex:   Hex-encoded string
-
-  -c, --config <CONFIG>
-          [default: poseidon]
-
-          Possible values:
-          - keccak:   Preset Keccak over Goldilocks config available in `plonky2`
-          - poseidon: Preset Poseidon over Goldilocks config available in `plonky2`
-
-  -h, --help
-          Print help (see a summary with '-h')
+  -h, --help     Print help
+  -V, --version  Print version
 
 ```
 

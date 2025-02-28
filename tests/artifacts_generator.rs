@@ -6,7 +6,7 @@ use plonky2::plonk::circuit_builder::CircuitBuilder;
 use plonky2::plonk::circuit_data::CircuitConfig;
 use plonky2::plonk::config::{GenericConfig, PoseidonGoldilocksConfig};
 use plonky2::util::serialization::Write;
-use plonky2_verifier::{Plonky2Config, Vk, ZKVerifyGateSerializer};
+use plonky2_verifier::{Plonky2Config, Proof, Vk, ZKVerifyGateSerializer};
 
 /// Fibonacci circuit, taken from plonky2 examples:
 /// https://github.com/0xPolygonZero/plonky2/blob/v0.2.3/plonky2/examples/fibonacci.rs
@@ -47,6 +47,15 @@ pub fn gen_fibonacci() {
     let mut proof_bytes = Vec::new();
     proof_bytes.write_proof(&proof.proof).unwrap();
 
+    let compressed_proof = proof
+        .clone()
+        .compress(&data.verifier_only.circuit_digest, &data.common)
+        .unwrap();
+    let mut compressed_proof_bytes = Vec::new();
+    compressed_proof_bytes
+        .write_compressed_proof(&compressed_proof.proof)
+        .unwrap();
+
     let mut pubs_bytes = Vec::new();
     pubs_bytes.write_usize(proof.public_inputs.len()).unwrap();
     pubs_bytes
@@ -63,14 +72,26 @@ pub fn gen_fibonacci() {
         bytes: vk_bytes,
     };
 
+    let proof = Proof {
+        compressed: false,
+        bytes: proof_bytes,
+    };
+
+    let proof_compressed = Proof {
+        compressed: true,
+        bytes: compressed_proof_bytes,
+    };
+
     serde_json::to_writer(&fs::File::create("tests/artifacts/vk.json").unwrap(), &vk).unwrap();
-    fs::write("tests/artifacts/proof.bin", proof_bytes).unwrap();
+    serde_json::to_writer(
+        &fs::File::create("tests/artifacts/proof.json").unwrap(),
+        &proof,
+    )
+    .unwrap();
+    serde_json::to_writer(
+        &fs::File::create("tests/artifacts/proof_compressed.json").unwrap(),
+        &proof_compressed,
+    )
+    .unwrap();
     fs::write("tests/artifacts/pubs.bin", pubs_bytes).unwrap();
-
-    println!(
-        "100th Fibonacci number mod |F| (starting with {}, {}) is: {}",
-        proof.public_inputs[0], proof.public_inputs[1], proof.public_inputs[2]
-    );
-
-    data.verify(proof).unwrap()
 }
