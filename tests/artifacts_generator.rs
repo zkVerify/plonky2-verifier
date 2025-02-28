@@ -6,12 +6,12 @@ use plonky2::plonk::circuit_builder::CircuitBuilder;
 use plonky2::plonk::circuit_data::CircuitConfig;
 use plonky2::plonk::config::{GenericConfig, PoseidonGoldilocksConfig};
 use plonky2::util::serialization::Write;
-use plonky2_verifier::ZKVerifyGateSerializer;
+use plonky2_verifier::{Plonky2Config, Vk, ZKVerifyGateSerializer};
 
 /// Fibonacci circuit, taken from plonky2 examples:
 /// https://github.com/0xPolygonZero/plonky2/blob/v0.2.3/plonky2/examples/fibonacci.rs
 /// Saves proof, public inputs and verification key to artifacts.
-pub fn gen_factorial() {
+pub fn gen_fibonacci() {
     const D: usize = 2;
     type C = PoseidonGoldilocksConfig;
     type F = <C as GenericConfig<D>>::F;
@@ -58,7 +58,12 @@ pub fn gen_factorial() {
         .to_bytes(&ZKVerifyGateSerializer)
         .unwrap();
 
-    fs::write("tests/artifacts/vk.bin", vk_bytes).unwrap();
+    let vk = Vk {
+        config: Plonky2Config::Poseidon,
+        bytes: vk_bytes,
+    };
+
+    serde_json::to_writer(&fs::File::create("tests/artifacts/vk.json").unwrap(), &vk).unwrap();
     fs::write("tests/artifacts/proof.bin", proof_bytes).unwrap();
     fs::write("tests/artifacts/pubs.bin", pubs_bytes).unwrap();
 

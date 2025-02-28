@@ -2,13 +2,13 @@
 #[path = "artifacts_generator.rs"]
 mod artifacts_generator;
 
-use plonky2_verifier::{verify, verify_default_poseidon, DeserializeError, VerifyError, Vk};
+use plonky2_verifier::{verify, DeserializeError, VerifyError, Vk};
 use rstest::*;
 use std::path::Path;
 
 /// `TestData` for verification in serialized format.
 struct TestData {
-    vk: Vec<u8>,
+    vk: Vk,
     proof: Vec<u8>,
     pubs: Vec<u8>,
 }
@@ -16,15 +16,20 @@ struct TestData {
 #[fixture]
 /// Ensures artifacts are generated and loads them.
 fn valid_test_data() -> TestData {
-    if !Path::new("tests/artifacts/vk.bin").exists()
+    if !Path::new("tests/artifacts/vk.json").exists()
         || !Path::new("tests/artifacts/proof.bin").exists()
         || !Path::new("tests/artifacts/pubs.bin").exists()
     {
         println!("Generating artifacts...");
-        artifacts_generator::gen_factorial();
+        artifacts_generator::gen_fibonacci();
     }
 
-    let vk = std::fs::read("tests/artifacts/vk.bin").expect("Failed to read vk.bin");
+    let json_data =
+        std::fs::read_to_string("tests/artifacts/vk.json").expect("Failed to read the vk.json");
+
+    let vk: Vk =
+        serde_json::from_str(&json_data).expect("Failed to deserialize JSON into Vk struct");
+
     let proof = std::fs::read("tests/artifacts/proof.bin").expect("Failed to read proof.bin");
     let pubs = std::fs::read("tests/artifacts/pubs.bin").expect("Failed to read pubs.bin");
 
@@ -32,22 +37,9 @@ fn valid_test_data() -> TestData {
 }
 
 #[rstest]
-fn should_verify_valid_proof_vk_json(valid_test_data: TestData) {
-    let json_data =
-        std::fs::read_to_string("tests/artifacts/vk.json").expect("Failed to read the vk.json");
-
-    let vk: Vk =
-        serde_json::from_str(&json_data).expect("Failed to deserialize JSON into Vk struct");
-
-    let TestData { proof, pubs, .. } = valid_test_data;
-
-    assert!(verify(&vk, &proof, &pubs).is_ok());
-}
-
-#[rstest]
 fn should_verify_valid_proof(valid_test_data: TestData) {
     let TestData { vk, proof, pubs } = valid_test_data;
-    assert!(verify_default_poseidon(&vk, &proof, &pubs).is_ok());
+    assert!(verify(&vk, &proof, &pubs).is_ok());
 }
 
 #[rstest]
@@ -62,7 +54,7 @@ fn should_not_deserialize_invalid_pubs(valid_test_data: TestData) {
 
     assert!(
         matches!(
-            verify_default_poseidon(&vk, &proof, &pubs),
+            verify(&vk, &proof, &pubs),
             Err(VerifyError::InvalidData {
                 cause: DeserializeError::InvalidProof
             })
@@ -83,10 +75,7 @@ fn should_not_verify_false_proof(valid_test_data: TestData) {
     proof[len - 1] = pubs.last().unwrap().wrapping_add(1);
 
     assert!(
-        matches!(
-            verify_default_poseidon(&vk, &proof, &pubs),
-            Err(VerifyError::Failure { .. })
-        ),
+        matches!(verify(&vk, &proof, &pubs), Err(VerifyError::Failure { .. })),
         "Expected a Failure error when `proof` is corrupted"
     );
 }

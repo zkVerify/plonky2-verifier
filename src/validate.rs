@@ -2,6 +2,9 @@
 
 use crate::deserializer::deserialize_vk;
 use crate::{DeserializeError, Plonky2Config, Vk};
+use plonky2::field::extension::Extendable;
+use plonky2::hash::hash_types::RichField;
+use plonky2::plonk::circuit_data::CircuitConfig;
 use plonky2::plonk::config::{GenericConfig, KeccakGoldilocksConfig, PoseidonGoldilocksConfig};
 use snafu::Snafu;
 
@@ -15,6 +18,9 @@ pub enum ValidateError {
         #[snafu(source)]
         cause: DeserializeError,
     },
+    /// Unsupported circuit config.
+    #[snafu(display("Unsupported config"))]
+    UnsupportedCircuitConfig,
 }
 
 impl From<DeserializeError> for ValidateError {
@@ -29,29 +35,33 @@ type ValidateResult = Result<(), ValidateError>;
 /// Validate `Vk`.
 pub fn validate_vk(vk: &Vk) -> ValidateResult {
     match vk.config {
-        Plonky2Config::Keccak => validate_vk_default_keccak(&vk.bytes),
-        Plonky2Config::Poseidon => validate_vk_default_poseidon(&vk.bytes),
+        Plonky2Config::Keccak => {
+            const D: usize = 2;
+            type C = KeccakGoldilocksConfig;
+            type F = <C as GenericConfig<D>>::F;
+
+            validate_vk_inner::<F, C, D>(&vk.bytes)
+        }
+        Plonky2Config::Poseidon => {
+            const D: usize = 2;
+            type C = PoseidonGoldilocksConfig;
+            type F = <C as GenericConfig<D>>::F;
+
+            validate_vk_inner::<F, C, D>(&vk.bytes)
+        }
     }
 }
 
-/// Validate vk with preset Poseidon over Goldilocks config available in `plonky2`.
-pub fn validate_vk_default_poseidon(vk: &[u8]) -> ValidateResult {
-    const D: usize = 2;
-    type C = PoseidonGoldilocksConfig;
-    type F = <C as GenericConfig<D>>::F;
-
+fn validate_vk_inner<F, C, const D: usize>(vk: &[u8]) -> ValidateResult
+where
+    F: RichField + Extendable<D>,
+    C: GenericConfig<D, F = F>,
+{
     deserialize_vk::<F, C, D>(vk)
-        .map(|_| ())
         .map_err(ValidateError::from)
-}
-
-/// Validate vk with preset Keccak over Goldilocks config available in `plonky2`.
-pub fn validate_vk_default_keccak(vk: &[u8]) -> ValidateResult {
-    const D: usize = 2;
-    type C = KeccakGoldilocksConfig;
-    type F = <C as GenericConfig<D>>::F;
-
-    deserialize_vk::<F, C, D>(vk)
-        .map(|_| ())
-        .map_err(ValidateError::from)
+        .and_then(|vk| {
+            (vk.common.config == CircuitConfig::standard_recursion_config())
+                .then_some(())
+                .ok_or(ValidateError::UnsupportedCircuitConfig)
+        })
 }
