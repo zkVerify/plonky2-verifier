@@ -35,7 +35,8 @@ where
         .map_err(|_| DeserializeError::InvalidVerificationKey)
 }
 
-pub(crate) fn deserialize_proof_with_pubs<F, C, const D: usize>(
+/// Combine a `Proof` and `Pubs` and deserialize into `ProofWithPublicInputs`.
+pub fn deserialize_proof_with_pubs<F, C, const D: usize>(
     proof: &[u8],
     pubs: &[u8],
     common_data: &CommonCircuitData<F, D>,
@@ -52,7 +53,8 @@ where
         .map_err(|_| DeserializeError::InvalidProof)
 }
 
-pub(crate) fn deserialize_compressed_proof_with_pubs<F, C, const D: usize>(
+/// Combine a compressed `Proof` and `Pubs` and deserialize into `CompressedProofWithPublicInputs`.
+pub fn deserialize_compressed_proof_with_pubs<F, C, const D: usize>(
     proof: &[u8],
     pubs: &[u8],
     common_data: &CommonCircuitData<F, D>,

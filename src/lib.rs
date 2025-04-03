@@ -11,8 +11,6 @@ mod proof;
 pub mod validate;
 mod vk;
 
-use deserializer::{deserialize_compressed_proof_with_pubs, deserialize_proof_with_pubs};
-
 use plonky2::field::extension::Extendable;
 use plonky2::hash::hash_types::RichField;
 use plonky2::plonk::circuit_data::CircuitConfig;
@@ -20,7 +18,10 @@ use plonky2::plonk::config::{GenericConfig, KeccakGoldilocksConfig, PoseidonGold
 use snafu::Snafu;
 
 pub use config::Plonky2Config;
-pub use deserializer::{custom::ZKVerifyGateSerializer, deserialize_vk, DeserializeError};
+pub use deserializer::{
+    custom::ZKVerifyGateSerializer, deserialize_compressed_proof_with_pubs,
+    deserialize_proof_with_pubs, deserialize_vk, DeserializeError,
+};
 pub use proof::Proof;
 pub use validate::ValidateResult;
 pub use vk::Vk;
