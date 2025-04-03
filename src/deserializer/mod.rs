@@ -23,7 +23,7 @@ pub enum DeserializeError {
     InvalidVerificationKey,
 }
 
-/// Function for deserializing a VK.
+/// Deserialize a `Vk` from bytes to `VerifierCircuitData`.
 pub fn deserialize_vk<F, C, const D: usize>(
     vk: &[u8],
 ) -> Result<VerifierCircuitData<F, C, D>, DeserializeError>
