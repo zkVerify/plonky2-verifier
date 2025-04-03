@@ -30,7 +30,7 @@ impl From<DeserializeError> for ValidateError {
 }
 
 /// Validation result.
-type ValidateResult = Result<(), ValidateError>;
+pub type ValidateResult = Result<(), ValidateError>;
 
 /// Validate `Vk`.
 pub fn validate_vk(vk: &Vk) -> ValidateResult {

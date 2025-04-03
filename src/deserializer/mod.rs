@@ -23,7 +23,8 @@ pub enum DeserializeError {
     InvalidVerificationKey,
 }
 
-pub(crate) fn deserialize_vk<F, C, const D: usize>(
+/// Deserialize a `Vk` from bytes to `VerifierCircuitData`.
+pub fn deserialize_vk<F, C, const D: usize>(
     vk: &[u8],
 ) -> Result<VerifierCircuitData<F, C, D>, DeserializeError>
 where
@@ -34,7 +35,8 @@ where
         .map_err(|_| DeserializeError::InvalidVerificationKey)
 }
 
-pub(crate) fn deserialize_proof_with_pubs<F, C, const D: usize>(
+/// Combine a `Proof` and `Pubs` and deserialize into `ProofWithPublicInputs`.
+pub fn deserialize_proof_with_pubs<F, C, const D: usize>(
     proof: &[u8],
     pubs: &[u8],
     common_data: &CommonCircuitData<F, D>,
@@ -51,7 +53,8 @@ where
         .map_err(|_| DeserializeError::InvalidProof)
 }
 
-pub(crate) fn deserialize_compressed_proof_with_pubs<F, C, const D: usize>(
+/// Combine a compressed `Proof` and `Pubs` and deserialize into `CompressedProofWithPublicInputs`.
+pub fn deserialize_compressed_proof_with_pubs<F, C, const D: usize>(
     proof: &[u8],
     pubs: &[u8],
     common_data: &CommonCircuitData<F, D>,
