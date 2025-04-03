@@ -23,7 +23,8 @@ pub enum DeserializeError {
     InvalidVerificationKey,
 }
 
-pub(crate) fn deserialize_vk<F, C, const D: usize>(
+#[allow(missing_docs)]
+pub fn deserialize_vk<F, C, const D: usize>(
     vk: &[u8],
 ) -> Result<VerifierCircuitData<F, C, D>, DeserializeError>
 where
