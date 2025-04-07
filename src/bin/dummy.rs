@@ -37,6 +37,8 @@ fn main() -> Result<()> {
 
     let (data, proof) = build_cicruit_and_proof(num_cycles);
 
+    println!("degree_bits = {}", data.common.fri_params.degree_bits);
+
     let _ = data.verify(proof.clone());
 
     let vk_bytes = data
@@ -88,12 +90,6 @@ fn build_cicruit_and_proof(
     let mut pw = PartialWitness::new();
     let _ = pw.set_target(initial_a, F::ZERO);
     let _ = pw.set_target(initial_b, F::ONE);
-
-    println!(
-        "num_cycles = {},\tnum_gates = {:?}",
-        num_cycles,
-        builder.num_gates()
-    );
 
     let data = builder.build::<C>();
     let proof = data.prove(pw).unwrap();
