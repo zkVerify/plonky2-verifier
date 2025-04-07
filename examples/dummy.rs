@@ -1,5 +1,4 @@
 use std::fs::File;
-use std::io::Write;
 
 use anyhow::Result;
 use plonky2::field::goldilocks_field::GoldilocksField;
@@ -9,6 +8,8 @@ use plonky2::plonk::circuit_builder::CircuitBuilder;
 use plonky2::plonk::circuit_data::{CircuitConfig, CircuitData};
 use plonky2::plonk::config::{GenericConfig, PoseidonGoldilocksConfig};
 use plonky2::plonk::proof::ProofWithPublicInputs;
+use plonky2::util::serialization::Write;
+use plonky2_verifier::ZKVerifyGateSerializer;
 
 /// An example of using Plonky2 to prove a statement of the form
 /// "I know the 100th element of the Fibonacci sequence, starting with constants a and b."
@@ -21,9 +22,6 @@ fn main() -> Result<()> {
     let (data, proof) = build_cicruit(num_cycles);
 
     let _ = data.verify(proof.clone());
-
-    use plonky2::util::serialization::Write;
-    use plonky2_verifier::ZKVerifyGateSerializer;
 
     let vk_bytes = data
         .verifier_data()
@@ -92,6 +90,7 @@ fn build_cicruit(
 }
 
 fn save_to_bin_file(data: &Vec<u8>, filename: &str) -> Result<()> {
+    use std::io::Write;
     let mut file = File::create(filename)?; // Create or overwrite the file
     file.write_all(data)?; // Write all bytes
     Ok(())
