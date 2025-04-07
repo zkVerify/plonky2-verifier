@@ -18,7 +18,7 @@ snafu = { version = "0.8.5", default-features = false }
 serde = { version = "1.0.217", default-features = false, features = ["derive"] }
 serde_with = { version = "3.12.0", default-features = false, features = ["macros", "hex"] }
 
-anyhow = { version = "1.0.95", default-features = false }
+anyhow = { version = "1.0.95", default-features = false, optional = true }
 serde_json = { version = "1.0.137", default-features = false, optional = true, features = ["std"] }
 bincode = { version = "1.3.3", default-features = false, optional = true}
 clap = { version = "4.5.27", default-features = false, optional = true, features = ["std", "derive", "help"] }
@@ -35,10 +35,16 @@ name = "plonky2-converter"
 path = "src/bin/converter.rs"
 required-features = ["converter"]
 
+[[bin]]
+name = "plonky2-dummy"
+path = "src/bin/dummy.rs"
+required-features = ["dummy"]
+
 [features]
 default = ["std"]
 std = [
     "plonky2/std",
     "snafu/std",
 ]
-converter = ["serde_json", "bincode", "clap", "log", "env_logger", "hex"]
+converter = ["anyhow", "serde_json", "bincode", "clap", "log", "env_logger", "hex"]
+dummy = ["anyhow"]

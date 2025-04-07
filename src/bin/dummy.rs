@@ -11,6 +11,10 @@ use plonky2::plonk::proof::ProofWithPublicInputs;
 use plonky2::util::serialization::Write;
 use plonky2_verifier::ZKVerifyGateSerializer;
 
+const D: usize = 2;
+type C = PoseidonGoldilocksConfig;
+type F = <C as GenericConfig<D>>::F;
+
 /// An example of using Plonky2 to prove a statement of the form
 /// "I know the 100th element of the Fibonacci sequence, starting with constants a and b."
 /// When a == 0 and b == 1, this is proving knowledge of the 100th (standard) Fibonacci number.
@@ -19,7 +23,7 @@ fn main() -> Result<()> {
     const POW: u32 = 15;
     let num_cycles: u64 = 1 << POW;
 
-    let (data, proof) = build_cicruit(num_cycles);
+    let (data, proof) = build_cicruit_and_proof(num_cycles);
 
     let _ = data.verify(proof.clone());
 
@@ -43,11 +47,7 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-const D: usize = 2;
-type C = PoseidonGoldilocksConfig;
-type F = <C as GenericConfig<D>>::F;
-
-fn build_cicruit(
+fn build_cicruit_and_proof(
     num_cycles: u64,
 ) -> (
     CircuitData<GoldilocksField, PoseidonGoldilocksConfig, D>,
