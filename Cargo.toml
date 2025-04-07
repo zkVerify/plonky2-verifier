@@ -47,4 +47,4 @@ std = [
     "snafu/std",
 ]
 converter = ["anyhow", "serde_json", "bincode", "clap", "log", "env_logger", "hex"]
-dummy = ["anyhow"]
+dummy = ["anyhow", "clap"]

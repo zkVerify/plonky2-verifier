@@ -1,6 +1,7 @@
 use std::fs::File;
 
 use anyhow::Result;
+use clap::Parser;
 use plonky2::field::goldilocks_field::GoldilocksField;
 use plonky2::field::types::Field;
 use plonky2::iop::witness::{PartialWitness, WitnessWrite};
@@ -11,6 +12,15 @@ use plonky2::plonk::proof::ProofWithPublicInputs;
 use plonky2::util::serialization::Write;
 use plonky2_verifier::ZKVerifyGateSerializer;
 
+/// Simple program to greet a person
+#[derive(Parser, Debug)]
+#[command(version, about, long_about = None)]
+struct Args {
+    /// Power of 2 defining the number of cycles.
+    #[arg(short, long)]
+    power: u32,
+}
+
 const D: usize = 2;
 type C = PoseidonGoldilocksConfig;
 type F = <C as GenericConfig<D>>::F;
@@ -20,8 +30,9 @@ type F = <C as GenericConfig<D>>::F;
 /// When a == 0 and b == 1, this is proving knowledge of the 100th (standard) Fibonacci number.
 /// This example also serializes the circuit data and proof to JSON files.
 fn main() -> Result<()> {
-    const POW: u32 = 15;
-    let num_cycles: u64 = 1 << POW;
+    let args = Args::parse();
+
+    let num_cycles: u64 = 1 << args.power;
 
     let (data, proof) = build_cicruit_and_proof(num_cycles);
 
