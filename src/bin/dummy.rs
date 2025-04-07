@@ -17,7 +17,7 @@ use plonky2_verifier::ZKVerifyGateSerializer;
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 struct Args {
-    /// Exponent of the power of 2 defining the number of cycles.
+    /// Exponent in the power of 2 specifying the number of cycles.
     #[arg(short, long)]
     power: u32,
 }
