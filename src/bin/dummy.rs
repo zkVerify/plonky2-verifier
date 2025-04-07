@@ -12,11 +12,12 @@ use plonky2::plonk::proof::ProofWithPublicInputs;
 use plonky2::util::serialization::Write;
 use plonky2_verifier::ZKVerifyGateSerializer;
 
-/// Simple program to greet a person
+/// Simple program for generating proof, vk, and pubs binary files for
+/// an instance with configurable number of cycles.
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 struct Args {
-    /// Power of 2 defining the number of cycles.
+    /// Exponent of the power of 2 defining the number of cycles.
     #[arg(short, long)]
     power: u32,
 }
