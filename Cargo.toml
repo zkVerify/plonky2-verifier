@@ -36,9 +36,9 @@ path = "src/bin/converter.rs"
 required-features = ["converter"]
 
 [[bin]]
-name = "plonky2-dummy"
-path = "src/bin/dummy.rs"
-required-features = ["dummy"]
+name = "plonky2-fibonacci-bench"
+path = "src/bin/fibonacci_bench.rs"
+required-features = ["fibonacci-bench"]
 
 [features]
 default = ["std"]
@@ -47,4 +47,4 @@ std = [
     "snafu/std",
 ]
 converter = ["anyhow", "serde_json", "bincode", "clap", "log", "env_logger", "hex"]
-dummy = ["anyhow", "clap"]
+fibonacci-bench = ["anyhow", "clap"]
