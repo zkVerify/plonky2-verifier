@@ -1,16 +1,39 @@
 use std::fs::File;
+use std::str::FromStr;
+use std::usize;
 
 use anyhow::Result;
-use clap::Parser;
+use clap::{Parser, ValueEnum};
+use plonky2::field::extension::Extendable;
 use plonky2::field::goldilocks_field::GoldilocksField;
 use plonky2::field::types::Field;
+use plonky2::hash::hash_types::RichField;
 use plonky2::iop::witness::{PartialWitness, WitnessWrite};
 use plonky2::plonk::circuit_builder::CircuitBuilder;
 use plonky2::plonk::circuit_data::{CircuitConfig, CircuitData};
-use plonky2::plonk::config::{GenericConfig, PoseidonGoldilocksConfig};
+use plonky2::plonk::config::{GenericConfig, KeccakGoldilocksConfig, PoseidonGoldilocksConfig};
 use plonky2::plonk::proof::ProofWithPublicInputs;
 use plonky2::util::serialization::Write;
 use plonky2_verifier::ZKVerifyGateSerializer;
+
+#[derive(Copy, Clone, Default, PartialEq, Eq, Debug, ValueEnum)]
+enum HashFunction {
+    Keccak,
+    #[default]
+    Poseidon,
+}
+
+impl FromStr for HashFunction {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_lowercase().as_str() {
+            "keccak" => Ok(HashFunction::Keccak),
+            "poseidon" => Ok(HashFunction::Poseidon),
+            _ => Err(format!("Invalid hash function family: {}", s)),
+        }
+    }
+}
 
 /// Simple program for generating proof, vk, and pubs binary files for
 /// an instance with configurable number of cycles.
@@ -20,11 +43,13 @@ struct Args {
     /// Exponent in the power of 2 specifying the number of cycles.
     #[arg(short, long)]
     power: u32,
+    /// Hash function family to be used in proof generation.
+    #[arg(long, value_enum, default_value_t = HashFunction::Poseidon)]
+    hash: HashFunction,
+    /// Use compression.
+    #[arg(short, long, default_value_t = false)]
+    compress: bool,
 }
-
-const D: usize = 2;
-type C = PoseidonGoldilocksConfig;
-type F = <C as GenericConfig<D>>::F;
 
 /// An example of using Plonky2 to prove a statement of the form
 /// "I know the 100th element of the Fibonacci sequence, starting with constants a and b."
@@ -35,9 +60,27 @@ fn main() -> Result<()> {
 
     let num_cycles: u64 = 1 << args.power;
 
-    let (data, proof) = build_cicruit_and_proof(num_cycles);
+    const D: usize = 2;
+    // type C = PoseidonGoldilocksConfig;
+    // type F = <C as GenericConfig<D>>::F;
+    let (data, proof) = match args.hash {
+        HashFunction::Poseidon => {
+            type C = PoseidonGoldilocksConfig;
+            type F = <C as GenericConfig<D>>::F;
+            build_cicruit_and_proof::<D, C, F>(num_cycles)
+        }
+        HashFunction::Keccak => {
+            type C = KeccakGoldilocksConfig;
+            type F = <C as GenericConfig<D>>::F;
+            build_cicruit_and_proof::<D, C, F>(num_cycles)
+        }
+    };
+
+    // let (data, proof) = build_cicruit_and_proof::<D>(num_cycles);
 
     println!("degree_bits = {}", data.common.fri_params.degree_bits);
+    println!("Hash Function Family: {:?}", args.hash);
+    println!("Compress: {}", args.compress);
 
     let _ = data.verify(proof.clone());
 
@@ -61,12 +104,18 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-fn build_cicruit_and_proof(
+fn build_cicruit_and_proof<const D: usize, C, F>(
     num_cycles: u64,
 ) -> (
-    CircuitData<GoldilocksField, PoseidonGoldilocksConfig, D>,
-    ProofWithPublicInputs<GoldilocksField, PoseidonGoldilocksConfig, D>,
-) {
+    // CircuitData<GoldilocksField, PoseidonGoldilocksConfig, D>,
+    // ProofWithPublicInputs<GoldilocksField, PoseidonGoldilocksConfig, D>,
+    CircuitData<F, C, D>,
+    ProofWithPublicInputs<F, C, D>,
+)
+where
+    C: GenericConfig<D, F = F>,
+    F: RichField + Extendable<D>,
+{
     let config = CircuitConfig::standard_recursion_config();
     let mut builder = CircuitBuilder::<F, D>::new(config);
 
