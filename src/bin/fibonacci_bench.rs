@@ -5,8 +5,6 @@ use std::usize;
 use anyhow::Result;
 use clap::{Parser, ValueEnum};
 use plonky2::field::extension::Extendable;
-use plonky2::field::goldilocks_field::GoldilocksField;
-use plonky2::field::types::Field;
 use plonky2::hash::hash_types::RichField;
 use plonky2::iop::witness::{PartialWitness, WitnessWrite};
 use plonky2::plonk::circuit_builder::CircuitBuilder;
@@ -60,27 +58,31 @@ fn main() -> Result<()> {
 
     let num_cycles: u64 = 1 << args.power;
 
-    const D: usize = 2;
-    // type C = PoseidonGoldilocksConfig;
-    // type F = <C as GenericConfig<D>>::F;
-    let (data, proof) = match args.hash {
+    match args.hash {
         HashFunction::Poseidon => {
+            const D: usize = 2;
             type C = PoseidonGoldilocksConfig;
             type F = <C as GenericConfig<D>>::F;
-            build_cicruit_and_proof::<D, C, F>(num_cycles)
+            main_impl::<D, C, F>(num_cycles, args.compress)
         }
         HashFunction::Keccak => {
+            const D: usize = 2;
             type C = KeccakGoldilocksConfig;
             type F = <C as GenericConfig<D>>::F;
-            build_cicruit_and_proof::<D, C, F>(num_cycles)
+            main_impl::<D, C, F>(num_cycles, args.compress)
         }
-    };
+    }
+}
 
-    // let (data, proof) = build_cicruit_and_proof::<D>(num_cycles);
+fn main_impl<const D: usize, C, F>(num_cycles: u64, compress: bool) -> Result<()>
+where
+    C: GenericConfig<D, F = F>,
+    F: RichField + Extendable<D>,
+{
+    let (data, proof) = build_cicruit_and_proof::<D, C, F>(num_cycles);
 
     println!("degree_bits = {}", data.common.fri_params.degree_bits);
-    println!("Hash Function Family: {:?}", args.hash);
-    println!("Compress: {}", args.compress);
+    println!("Compress: {}", compress);
 
     let _ = data.verify(proof.clone());
 
@@ -106,12 +108,7 @@ fn main() -> Result<()> {
 
 fn build_cicruit_and_proof<const D: usize, C, F>(
     num_cycles: u64,
-) -> (
-    // CircuitData<GoldilocksField, PoseidonGoldilocksConfig, D>,
-    // ProofWithPublicInputs<GoldilocksField, PoseidonGoldilocksConfig, D>,
-    CircuitData<F, C, D>,
-    ProofWithPublicInputs<F, C, D>,
-)
+) -> (CircuitData<F, C, D>, ProofWithPublicInputs<F, C, D>)
 where
     C: GenericConfig<D, F = F>,
     F: RichField + Extendable<D>,
