@@ -81,26 +81,39 @@ where
 {
     let (data, proof) = build_cicruit_and_proof::<D, C, F>(num_cycles);
 
+    let _ = data.verify(proof.clone());
+
     println!("degree_bits = {}", data.common.fri_params.degree_bits);
     println!("Compress: {}", compress);
-
-    let _ = data.verify(proof.clone());
 
     let vk_bytes = data
         .verifier_data()
         .to_bytes(&ZKVerifyGateSerializer)
         .unwrap();
-    save_to_bin_file(&vk_bytes, "vk.bin").unwrap();
 
     let mut proof_bytes = Vec::new();
-    proof_bytes.write_proof(&proof.proof).unwrap();
-    save_to_bin_file(&proof_bytes, "proof.bin").unwrap();
-
     let mut pubs_bytes = Vec::new();
-    pubs_bytes.write_usize(proof.public_inputs.len()).unwrap();
-    pubs_bytes
-        .write_field_vec(proof.public_inputs.as_slice())
-        .unwrap();
+    if compress {
+        let compressed_proof = data.compress(proof.clone())?;
+        proof_bytes
+            .write_compressed_proof(&compressed_proof.proof)
+            .unwrap();
+        pubs_bytes
+            .write_usize(compressed_proof.public_inputs.len())
+            .unwrap();
+        pubs_bytes
+            .write_field_vec(compressed_proof.public_inputs.as_slice())
+            .unwrap();
+    } else {
+        proof_bytes.write_proof(&proof.proof).unwrap();
+        pubs_bytes.write_usize(proof.public_inputs.len()).unwrap();
+        pubs_bytes
+            .write_field_vec(proof.public_inputs.as_slice())
+            .unwrap();
+    }
+
+    save_to_bin_file(&vk_bytes, "vk.bin").unwrap();
+    save_to_bin_file(&proof_bytes, "proof.bin").unwrap();
     save_to_bin_file(&pubs_bytes, "pubs.bin").unwrap();
 
     Ok(())
