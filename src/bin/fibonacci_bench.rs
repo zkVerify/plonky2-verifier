@@ -81,8 +81,6 @@ where
 {
     let (data, proof) = build_cicruit_and_proof::<D, C, F>(num_cycles);
 
-    let _ = data.verify(proof.clone());
-
     println!("degree_bits = {}", data.common.fri_params.degree_bits);
     println!("Compress: {}", compress);
 
@@ -111,6 +109,8 @@ where
             .write_field_vec(proof.public_inputs.as_slice())
             .unwrap();
     }
+
+    data.verify(proof.clone()).unwrap();
 
     save_to_bin_file(&vk_bytes, "vk.bin").unwrap();
     save_to_bin_file(&proof_bytes, "proof.bin").unwrap();
