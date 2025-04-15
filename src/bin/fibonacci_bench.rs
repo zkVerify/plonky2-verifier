@@ -57,6 +57,7 @@ fn main() -> Result<()> {
     let args = Args::parse();
 
     let num_cycles: u64 = 1 << args.power;
+    println!("power = {}", args.power);
 
     match args.hash {
         HashFunction::Poseidon => {
