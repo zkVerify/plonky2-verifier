@@ -63,7 +63,7 @@ where
     F: RichField + Extendable<D>,
     C: GenericConfig<D, F = F>,
 {
-    let offset = size_of::<usize>();
+    let offset = size_of::<u64>();
     if pubs.len() < offset {
         return Err(DeserializeError::InvalidProof);
     }

@@ -1,9 +1,9 @@
 [package]
 name = "plonky2-verifier"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2021"
 license = "GPL-3.0"
-description = "A pure Rust library to verify plonky2 proof."
+description = "A pure Rust library for verifying plonky2 proofs."
 repository = "https://github.com/distributed-lab/plonky2-verifier"
 homepage = "https://github.com/distributed-lab/plonky2-verifier#readme"
 documentation = "https://distributed-lab.github.io/plonky2-verifier/"
@@ -35,6 +35,11 @@ name = "plonky2-converter"
 path = "src/bin/converter.rs"
 required-features = ["converter"]
 
+[[bin]]
+name = "plonky2-fibonacci-bench"
+path = "src/bin/fibonacci_bench.rs"
+required-features = ["fibonacci-bench"]
+
 [features]
 default = ["std"]
 std = [
@@ -42,3 +47,4 @@ std = [
     "snafu/std",
 ]
 converter = ["anyhow", "serde_json", "bincode", "clap", "log", "env_logger", "hex"]
+fibonacci-bench = ["anyhow", "clap"]
